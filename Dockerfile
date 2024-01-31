@@ -20,6 +20,8 @@ RUN mv /opt/application/douyincloud_egress.crt /usr/local/share/ca-certificates/
 RUN update-ca-certificates
 
 RUN chmod 777 run.sh
+ENV TZ=Asia/Shanghai
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 EXPOSE 8000
 
