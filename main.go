@@ -18,6 +18,7 @@ package main
 import (
 	"douyincloud-gin-demo/service"
 	"log"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -25,6 +26,9 @@ import (
 func main() {
 	r := gin.Default()
 
+	r.GET("/ping", func(ctx *gin.Context) {
+		ctx.JSON(http.StatusOK, "OK")
+	})
 	r.POST("/api/open_api", service.RunOpenApi)
 
 	log.Println("Server init success")
