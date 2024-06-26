@@ -1,4 +1,4 @@
-FROM public-cn-beijing.cr.volces.com/public/golang:alpine as builder
+FROM golang:1.18.10 as builder
 # 指定构建过程中的工作目录
 WORKDIR /app
 # 将当前目录（dockerfile所在目录）下所有文件都拷贝到工作目录下（.dockerignore中文件除外）
