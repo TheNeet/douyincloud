@@ -29,6 +29,9 @@ func main() {
 	r.GET("/ping", func(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, "OK")
 	})
+	r.GET("/health", func(ctx *gin.Context) {
+		ctx.JSON(http.StatusOK, "200")
+	})
 	r.POST("/api/open_api", service.RunOpenApi)
 
 	log.Println("Server init success")
