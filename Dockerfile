@@ -19,9 +19,9 @@ RUN apk add ca-certificates curl
 RUN mv /opt/application/douyincloud_egress.crt /usr/local/share/ca-certificates/douyincloud_egress.crt
 RUN update-ca-certificates
 
-RUN chmod 777 run.sh
 ENV TZ=Asia/Shanghai
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+RUN chmod 777 /aa/run.sh
 
 EXPOSE 8000
 
