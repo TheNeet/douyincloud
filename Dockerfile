@@ -25,4 +25,4 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 EXPOSE 8000
 
-#CMD /opt/application/run.sh
+CMD /opt/application/run.sh
