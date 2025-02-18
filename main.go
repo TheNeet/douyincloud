@@ -16,6 +16,7 @@ limitations under the License.
 package main
 
 import (
+	"douyincloud-gin-demo/redis"
 	"douyincloud-gin-demo/service"
 	"log"
 	"net/http"
@@ -24,19 +25,18 @@ import (
 )
 
 func main() {
+	redis.Init()
+	service.Init()
+
 	r := gin.Default()
 
-	r.GET("/ping", func(ctx *gin.Context) {
-		ctx.JSON(http.StatusOK, "OK")
-	})
 	r.GET("/health", func(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, "200")
 	})
-	r.GET("/health_v2", func(ctx *gin.Context) {
-		ctx.JSON(http.StatusOK, "200")
-	})
 	r.POST("/api/open_api", service.RunOpenApi)
-
+	r.GET("/ws/connect", service.Connect)
+	r.GET("/ws/disconnect", service.Disconnect)
+	r.POST("/ws/uplink", service.Uplink)
 	log.Println("Server init success")
 	r.Run(":8000")
 }
