@@ -34,9 +34,8 @@ func main() {
 		ctx.JSON(http.StatusOK, "200")
 	})
 	r.POST("/api/open_api", service.RunOpenApi)
-	r.GET("/ws/connect", service.Connect)
-	r.GET("/ws/disconnect", service.Disconnect)
-	r.POST("/ws/uplink", service.Uplink)
+	r.GET("/ws", service.ConnectOrDisconnect)
+	r.POST("/ws", service.Uplink)
 	log.Println("Server init success")
 	r.Run(":8000")
 }
