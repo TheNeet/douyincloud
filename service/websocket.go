@@ -190,6 +190,9 @@ func wsRunActionWsPush(sessionID string, msg *UserMessage) error {
 		return err
 	}
 	req.Header.Set("X-TT-WS-SESSIONIDS", fmt.Sprintf("[%s]", sessionID))
+	for k := range envHeaders {
+		req.Header.Set(k, envHeaders.Get(k))
+	}
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return err
