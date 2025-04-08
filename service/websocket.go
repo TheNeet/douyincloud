@@ -103,7 +103,7 @@ func ConnectOrDisconnect(ctx *gin.Context) {
 	case "disconnect":
 		Disconnect(ctx)
 	default:
-		fmt.Println("[Error] X-tt-event-type is not connect or disconnect")
+		CtxError(ctx, "X-tt-event-type is not connect or disconnect")
 		ctx.String(http.StatusBadRequest, "X-tt-event-type is not connect or disconnect")
 		return
 	}
@@ -112,20 +112,20 @@ func ConnectOrDisconnect(ctx *gin.Context) {
 func Connect(ctx *gin.Context) {
 	sessionID := ctx.GetHeader("X-TT-SESSIONID")
 	if sessionID == "" {
-		fmt.Println("[Error] X-TT-SESSIONID is empty")
+		CtxError(ctx, "X-TT-SESSIONID is empty")
 		ctx.String(http.StatusBadRequest, "X-TT-SESSIONID is empty")
 		return
 	}
 	wsCtx, cancel := context.WithCancel(context.Background())
 	ws := &wsStruct{sessionID, make(chan []*wsInfo), wsCtx, cancel}
 	if err := redis.Set(ws.ctx, sessionID, "1", 0); err != nil {
-		fmt.Printf("[Error] redis.Set failed, err: %+v\n", err)
+		CtxError(ctx, "redis.Set failed, err: %+v", err)
 		ctx.String(http.StatusBadRequest, "redis.Set failed")
 		return
 	}
 	wsSessionMap.Store(sessionID, ws)
 	wsRun(ws)
-	fmt.Printf("connect success, session_id: %s, hostname: %s\n", sessionID, hostname)
+	CtxInfo(ctx, "connect success, session_id: %s, hostname: %s", sessionID, hostname)
 	ctx.Status(http.StatusOK)
 }
 
@@ -208,18 +208,18 @@ func wsRunActionWsPush(sessionID string, msg *UserMessage) error {
 
 func Disconnect(ctx *gin.Context) {
 	if ctx.GetHeader("X-tt-event-type") != "disconnect" {
-		fmt.Println("[Error] X-tt-event-type is not disconnect")
+		CtxError(ctx, "X-tt-event-type is not disconnect")
 		ctx.String(http.StatusBadRequest, "X-tt-event-type is not disconnect")
 		return
 	}
 	sessionID := ctx.GetHeader("X-TT-SESSIONID")
 	if sessionID == "" {
-		fmt.Println("[Error] X-TT-SESSIONID is empty")
+		CtxError(ctx, "X-TT-SESSIONID is empty")
 		ctx.String(http.StatusBadRequest, "X-TT-SESSIONID is empty")
 		return
 	}
 	if err := redis.Del(ctx, sessionID); err != nil {
-		fmt.Printf("[Error] redis.Del failed, err: %+v\n", err)
+		CtxError(ctx, "redis.Del failed, err: %+v", err)
 		ctx.String(http.StatusBadRequest, "redis.Del failed")
 		return
 	}
@@ -227,32 +227,32 @@ func Disconnect(ctx *gin.Context) {
 	if ok {
 		ws, ok := data.(*wsStruct)
 		if !ok {
-			fmt.Println("[Error] session type error")
+			CtxError(ctx, "session type error")
 			ctx.String(http.StatusBadRequest, "session type error")
 			return
 		}
 		ws.cancel()
 		wsSessionMap.Delete(sessionID)
 	}
-	fmt.Println("disconnect success")
+	CtxInfo(ctx, "disconnect success, session_id: %s", sessionID)
 	ctx.Status(http.StatusOK)
 }
 
 func Uplink(ctx *gin.Context) {
 	if ctx.GetHeader("X-tt-event-type") != "uplink" {
-		fmt.Println("[Error] X-tt-event-type is not uplink")
+		CtxError(ctx, "X-tt-event-type is not uplink")
 		ctx.String(http.StatusBadRequest, "X-tt-event-type is not uplink")
 		return
 	}
 	sessionID := ctx.GetHeader("X-TT-SESSIONID")
 	if sessionID == "" {
-		fmt.Println("[Error] X-TT-SESSIONID is empty")
+		CtxError(ctx, "X-TT-SESSIONID is empty")
 		ctx.String(http.StatusBadRequest, "X-TT-SESSIONID is empty")
 		return
 	}
 	body, err := ioutil.ReadAll(ctx.Request.Body)
 	if err != nil {
-		fmt.Printf("[Error] read body failed, err: %+v\n", err)
+		CtxError(ctx, "read body failed, err: %+v", err)
 		ctx.String(http.StatusBadRequest, "read body error")
 		return
 	}
@@ -263,31 +263,31 @@ func Uplink(ctx *gin.Context) {
 	data, ok := wsSessionMap.Load(sessionID)
 	if !ok {
 		if _, err = redis.Get(ctx, sessionID); err != nil {
-			fmt.Printf("[Error] redis.Get failed, err: %+v\n", err)
+			CtxError(ctx, "redis.Get failed, err: %+v", err)
 			ctx.String(http.StatusBadRequest, "session get failed")
 			return
 		}
 		redisData, err := json.Marshal(info)
 		if err != nil {
-			fmt.Printf("[Error] marshal failed, err: %+v\n", err)
+			CtxError(ctx, "marshal failed, err: %+v", err)
 			ctx.String(http.StatusBadRequest, "marshal error")
 			return
 		}
 		err = redis.Push(ctx, keyForWsInfos(sessionID), string(redisData))
 		if err != nil {
-			fmt.Printf("[Error] redis set failed, err: %+v\n", err)
+			CtxError(ctx, "redis set failed, err: %+v", err)
 			ctx.String(http.StatusBadRequest, "redis set error")
 			return
 		}
 	} else {
 		ws, ok := data.(*wsStruct)
 		if !ok {
-			fmt.Println("[Error] session type error")
+			CtxError(ctx, "session type error")
 			ctx.String(http.StatusBadRequest, "session type error")
 			return
 		}
 		ws.ch <- []*wsInfo{info}
 	}
-	fmt.Println("uplink success")
+	CtxInfo(ctx, "uplink success")
 	ctx.Status(http.StatusOK)
 }
